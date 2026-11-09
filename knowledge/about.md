@@ -1,0 +1,1 @@
+I am Khushi Chakke, a Computer Engineering student interested in software engineering, backend development, data structures and algorithms, database systems, artificial intelligence, and practical software development. This portfolio only includes details verified in the supplied project brief. Add further education, experience, and contact details when verified.

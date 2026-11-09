@@ -1,0 +1,16 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { z } from 'zod';
+import { synthesize } from './services/voice/provider.js';
+dotenv.config({path:'../../.env'});
+const app=express();app.use(cors({origin:process.env.CLIENT_ORIGIN||'http://localhost:5173'}));app.use(express.json({limit:'32kb'}));
+app.get('/api/health',(_req,res)=>res.json({status:'ok'}));
+app.get('/api/portfolio',(_req,res)=>res.json({name:'Khushi Chakke',role:'Computer Engineering student · Software developer'}));
+app.get('/api/projects',(_req,res)=>res.json([{id:'ledgerguard',name:'LedgerGuard',description:'A fraud detection and transaction monitoring project.'},{id:'reconengine',name:'ReconEngine',description:'A financial transaction reconciliation engine.'},{id:'finstress',name:'FinStress',description:'A financial stress analysis application using machine learning.'}]));
+const messageSchema=z.object({message:z.string().trim().min(1).max(2000)});
+app.post('/api/chat/message',(req,res)=>{const parsed=messageSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'Enter a message between 1 and 2000 characters.'});res.json({message:'The portfolio mock chat runs in the browser. The server is ready for a grounded AI provider when you add one.',provider:'mock'});});
+const voiceSchema=z.object({text:z.string().trim().min(1).max(4000)});
+app.post('/api/voice/synthesize',async(req,res)=>{const parsed=voiceSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'Text must be between 1 and 4000 characters.'});try{const result=await synthesize(parsed.data.text);if(!result)return res.status(503).json({error:'Server TTS is not configured. Use browser-generated speech in development.'});res.json(result)}catch{res.status(502).json({error:'The voice provider could not synthesize this response.'})}});
+app.use((err:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{console.error(err);res.status(500).json({error:'Unexpected server error.'})});
+const port=Number(process.env.PORT||4000);app.listen(port,()=>console.log(`Khushi API listening on http://localhost:${port}`));
